@@ -9,8 +9,8 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 # Словарь для хранения диалогов пользователей
 user_chats = {}
+MAX_HISTORY = 10  # Максимальное количество сообщений в истории
 
-# Функция для отправки запроса в OpenRouter GPT
 def ask_openrouter(messages):
     url = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -39,14 +39,22 @@ def webhook():
         if chat_id not in user_chats:
             user_chats[chat_id] = []
 
-        # Добавляем сообщение пользователя в память
+        # Добавляем сообщение пользователя в историю
         user_chats[chat_id].append({"role": "user", "content": text})
 
-        # Получаем ответ от OpenRouter GPT, используя всю историю
+        # Ограничиваем историю до MAX_HISTORY сообщений
+        if len(user_chats[chat_id]) > MAX_HISTORY:
+            user_chats[chat_id] = user_chats[chat_id][-MAX_HISTORY:]
+
+        # Получаем ответ GPT
         reply = ask_openrouter(user_chats[chat_id])
 
-        # Добавляем ответ бота в память
+        # Добавляем ответ бота в историю
         user_chats[chat_id].append({"role": "assistant", "content": reply})
+
+        # Опять ограничиваем до MAX_HISTORY
+        if len(user_chats[chat_id]) > MAX_HISTORY:
+            user_chats[chat_id] = user_chats[chat_id][-MAX_HISTORY:]
 
         # Отправляем ответ пользователю
         send_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
