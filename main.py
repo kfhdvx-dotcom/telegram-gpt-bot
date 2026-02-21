@@ -52,11 +52,7 @@ def webhook():
 
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text")
-
-        if text:
-            answer = ask_gpt(text)
-            send_message(chat_id, answer)
+        send_message(chat_id, "Бот работает ✅")
 
     return "ok", 200
 
